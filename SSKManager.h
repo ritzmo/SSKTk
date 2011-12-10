@@ -67,9 +67,9 @@ typedef void (^errorHandler_t)(NSString *productIdentifier, NSError *error);
 - (void)restorePreviousPurchasesOnComplete:(completionHandler_t)completionHandler onError:(errorHandler_t)errorHandler;
 
 /*!
- @brief Override Udid to be used for review.
+ @brief Override Uuid to be used for review.
  */
-@property (nonatomic, strong) NSString *udidForReview;
+@property (nonatomic, strong) NSString *uuidForReview;
 
 /*!
  @brief List of purchasable objects.

@@ -80,7 +80,7 @@
 	errorHandler = eHandler;
 
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"featureCheck.php"]];
-	NSString *uniqueID = [SSKManager sharedManager].udidForReview;
+	NSString *uniqueID = [SSKManager sharedManager].uuidForReview;
 
 	NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url
 															  cachePolicy:NSURLRequestReloadIgnoringCacheData
@@ -89,7 +89,7 @@
 	[theRequest setHTTPMethod:@"POST"];
 	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
 
-	NSString *postData = [NSString stringWithFormat:@"productid=%@&udid=%@", product.productIdentifier, uniqueID];
+	NSString *postData = [NSString stringWithFormat:@"productid=%@&uuid=%@", product.productIdentifier, uniqueID];
 
 	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
 	[theRequest setValue:length forHTTPHeaderField:@"Content-Length"];

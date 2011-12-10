@@ -40,7 +40,7 @@
 @synthesize consumables, nonConsumables, subscriptions;
 @synthesize pendingRequests, products;
 @synthesize onRestoreComplete, onRestoreError;
-@synthesize udidForReview;
+@synthesize uuidForReview;
 
 + (SSKManager *)sharedManager
 {
@@ -63,30 +63,30 @@
 	return self;
 }
 
-- (NSString *)udidForReview
+- (NSString *)uuidForReview
 {
-	if(udidForReview == nil)
+	if(uuidForReview == nil)
 	{
 		UIDevice *dev = [UIDevice currentDevice];
         if ([dev respondsToSelector:@selector(uniqueIdentifier)])
-            udidForReview = [dev valueForKey:@"uniqueIdentifier"];
+            uuidForReview = [dev valueForKey:@"uniqueIdentifier"];
         else {
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             id uuid = [defaults objectForKey:@"uniqueID"];
             if (uuid)
-                udidForReview = (NSString *)uuid;
+                uuidForReview = (NSString *)uuid;
             else
 			{
 				CFUUIDRef cfUuidRef = CFUUIDCreate(kCFAllocatorDefault);
                 CFStringRef cfUuid = CFUUIDCreateString(kCFAllocatorDefault, cfUuidRef);
-                udidForReview = [(__bridge NSString *)cfUuid copy];
+                uuidForReview = [(__bridge NSString *)cfUuid copy];
                 CFRelease(cfUuid);
 				CFRelease(cfUuidRef);
-                [defaults setObject:udidForReview forKey:@"uniqueID"];
+                [defaults setObject:uuidForReview forKey:@"uniqueID"];
             }
         }
 	}
-	return udidForReview;
+	return uuidForReview;
 }
 
 - (NSArray *)purchasables
