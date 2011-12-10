@@ -16,6 +16,8 @@ typedef void (^completionHandler_t)(NSString *productIdentifier);
 typedef void (^cancelHandler_t)(NSString *productIdentifier);
 typedef void (^errorHandler_t)(NSString *productIdentifier, NSError *error);
 
+extern NSString *sskErrorDomain;
+
 #define kProductFetchedNotification @"SStoreKitProductsFetched"
 
 @interface SSKManager : NSObject<SKProductsRequestDelegate, SKPaymentTransactionObserver>

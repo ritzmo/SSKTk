@@ -35,6 +35,8 @@
 @property (nonatomic, copy) errorHandler_t onRestoreError;
 @end
 
+NSString *sskErrorDomain = @"sskErrorDomain";
+
 @implementation SSKManager
 
 @synthesize consumables, nonConsumables, subscriptions;
@@ -207,7 +209,9 @@
 	{
 		if([pendingRequests objectForKey:productIdentifier] != nil)
 		{
-			errorHandler(productIdentifier, [NSError errorWithDomain:nil code:-1 userInfo:nil]); // TODO: improve
+			errorHandler(productIdentifier, [NSError errorWithDomain:sskErrorDomain
+																code:100
+															userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"There already is a pending request for this product.", @"") forKey:NSLocalizedDescriptionKey]]);
 			return;
 		}
 		[pendingRequests setObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -285,7 +289,9 @@
 						   }
 						   else
 						   {
-							   NSError *error = [NSError errorWithDomain:nil code:-1 userInfo:nil]; // TODO: improve
+							   NSError *error = [NSError errorWithDomain:sskErrorDomain
+																	code:101
+																userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedDescriptionKey]];
 							   [self erroneousPurchase:productIdentifier error:error];
 						   }
 					   }
@@ -314,7 +320,9 @@
 
         if(index == NSNotFound)
 		{
-			NSError *error = [NSError errorWithDomain:nil code:-1 userInfo:nil]; // TODO: improve
+			NSError *error = [NSError errorWithDomain:sskErrorDomain
+												 code:102
+											 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Unable to find product for the given product identifier.", @"") forKey:NSLocalizedDescriptionKey]];
 			return [self erroneousPurchase:productIdentifier error:error];
 		}
 
