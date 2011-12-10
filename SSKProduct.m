@@ -51,8 +51,8 @@
 #endif
 
 	NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url
-                                                              cachePolicy:NSURLRequestReloadIgnoringCacheData
-                                                          timeoutInterval:60];
+															  cachePolicy:NSURLRequestReloadIgnoringCacheData
+														  timeoutInterval:60];
 
 	[theRequest setHTTPMethod:@"POST"];
 	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -69,8 +69,8 @@
 
 	[theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
 
-    prod.connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
-    [prod.connection start];
+	prod.connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
+	[prod.connection start];
 }
 
 #if defined(REVIEW_ALLOWED)

@@ -70,23 +70,23 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 	if(uuidForReview == nil)
 	{
 		UIDevice *dev = [UIDevice currentDevice];
-        if ([dev respondsToSelector:@selector(uniqueIdentifier)])
-            uuidForReview = [dev valueForKey:@"uniqueIdentifier"];
-        else {
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            id uuid = [defaults objectForKey:@"uniqueID"];
-            if (uuid)
-                uuidForReview = (NSString *)uuid;
-            else
+		if ([dev respondsToSelector:@selector(uniqueIdentifier)])
+			uuidForReview = [dev valueForKey:@"uniqueIdentifier"];
+		else {
+			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+			id uuid = [defaults objectForKey:@"uniqueID"];
+			if (uuid)
+				uuidForReview = (NSString *)uuid;
+			else
 			{
 				CFUUIDRef cfUuidRef = CFUUIDCreate(kCFAllocatorDefault);
-                CFStringRef cfUuid = CFUUIDCreateString(kCFAllocatorDefault, cfUuidRef);
-                uuidForReview = [(__bridge NSString *)cfUuid copy];
-                CFRelease(cfUuid);
+				CFStringRef cfUuid = CFUUIDCreateString(kCFAllocatorDefault, cfUuidRef);
+				uuidForReview = [(__bridge NSString *)cfUuid copy];
+				CFRelease(cfUuid);
 				CFRelease(cfUuidRef);
-                [defaults setObject:uuidForReview forKey:@"uniqueID"];
-            }
-        }
+				[defaults setObject:uuidForReview forKey:@"uniqueID"];
+			}
+		}
 	}
 	return uuidForReview;
 }
@@ -145,16 +145,16 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 
 - (BOOL)removeAllKeychainData
 {
-    NSMutableArray *productsArray = [NSMutableArray array];
-    [productsArray addObjectsFromArray:[consumables allKeys]];
-    [productsArray addObjectsFromArray:nonConsumables];
-    [productsArray addObjectsFromArray:[subscriptions allKeys]];
+	NSMutableArray *productsArray = [NSMutableArray array];
+	[productsArray addObjectsFromArray:[consumables allKeys]];
+	[productsArray addObjectsFromArray:nonConsumables];
+	[productsArray addObjectsFromArray:[subscriptions allKeys]];
 
 	NSError *error = nil;
 	for(NSString *productIdentifier in productsArray)
 	{
-        [SFHFKeychainUtils deleteItemForUsername:productIdentifier andServiceName:KEYCHAIN_SERVICE error:&error];
-    }
+		[SFHFKeychainUtils deleteItemForUsername:productIdentifier andServiceName:KEYCHAIN_SERVICE error:&error];
+	}
 	return error == nil;
 }
 
@@ -174,7 +174,7 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 	[productsArray addObjectsFromArray:nonConsumables];
 	[productsArray addObjectsFromArray:[subscriptions allKeys]];
 
-	SKProductsRequest *request= [[SKProductsRequest alloc] initWithProductIdentifiers:[NSSet setWithArray:productsArray]];
+	SKProductsRequest *request = [[SKProductsRequest alloc] initWithProductIdentifiers:[NSSet setWithArray:productsArray]];
 	request.delegate = self;
 	[request start];
 }
@@ -315,10 +315,10 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 {
 	if ([SKPaymentQueue canMakePayments])
 	{
-        NSArray *allIds = [self.products valueForKey:@"productIdentifier"];
-        NSUInteger index = [allIds indexOfObject:productIdentifier];
+		NSArray *allIds = [self.products valueForKey:@"productIdentifier"];
+		NSUInteger index = [allIds indexOfObject:productIdentifier];
 
-        if(index == NSNotFound)
+		if(index == NSNotFound)
 		{
 			NSError *error = [NSError errorWithDomain:sskErrorDomain
 												 code:102
@@ -326,7 +326,7 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 			return [self erroneousPurchase:productIdentifier error:error];
 		}
 
-        SKProduct *thisProduct = [self.products objectAtIndex:index];
+		SKProduct *thisProduct = [self.products objectAtIndex:index];
 		SKPayment *payment = [SKPayment paymentWithProduct:thisProduct];
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[[SKPaymentQueue defaultQueue] addPayment:payment];
@@ -346,22 +346,22 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 
 - (void)rememberPurchaseOfProduct:(NSString *)productIdentifier withReceipt:(NSData *)receipt
 {
-    if([[self.consumables allKeys] containsObject:productIdentifier])
-    {
-        // TODO: add a way to confirm receipts for consumables at a later point?
-        NSDictionary *thisConsumableDict = [self.consumables objectForKey:productIdentifier];
-        NSInteger quantityPurchased = [[thisConsumableDict objectForKey:@"Count"] integerValue];
-        NSString* productPurchased = [thisConsumableDict objectForKey:@"Name"];
+	if([[self.consumables allKeys] containsObject:productIdentifier])
+	{
+		// TODO: add a way to confirm receipts for consumables at a later point?
+		NSDictionary *thisConsumableDict = [self.consumables objectForKey:productIdentifier];
+		NSInteger quantityPurchased = [[thisConsumableDict objectForKey:@"Count"] integerValue];
+		NSString* productPurchased = [thisConsumableDict objectForKey:@"Name"];
 
-        NSInteger oldCount = [[SSKManager numberForKey:productPurchased] integerValue];
-        NSInteger newCount = oldCount + quantityPurchased;
+		NSInteger oldCount = [[SSKManager numberForKey:productPurchased] integerValue];
+		NSInteger newCount = oldCount + quantityPurchased;
 
-        [SSKManager setObject:[NSNumber numberWithInteger:newCount] forKey:productPurchased];
-    }
-    else
-    {
-        [SSKManager setObject:receipt forKey:productIdentifier];
-    }
+		[SSKManager setObject:[NSNumber numberWithInteger:newCount] forKey:productPurchased];
+	}
+	else
+	{
+		[SSKManager setObject:receipt forKey:productIdentifier];
+	}
 }
 
 #pragma mark - SKProductsRequestDelegate
@@ -403,19 +403,19 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 				[self completePurchase:transaction.payment.productIdentifier withReceipt:transaction.transactionReceipt];
 				[queue finishTransaction:transaction];
 				break;
-            case SKPaymentTransactionStateFailed:
+			case SKPaymentTransactionStateFailed:
 				if(transaction.error.code == SKErrorPaymentCancelled)
 					[self canceledPurchase:transaction.payment.productIdentifier];
 				else
 					[self erroneousPurchase:transaction.payment.productIdentifier error:transaction.error];
 				[queue finishTransaction:transaction];
 				break;
-            case SKPaymentTransactionStateRestored:
+			case SKPaymentTransactionStateRestored:
 				[self completePurchase:transaction.originalTransaction.payment.productIdentifier withReceipt:transaction.transactionReceipt];
 				[queue finishTransaction:transaction];
 				break;
-            default:
-                break;
+			default:
+				break;
 		}
 	}
 }
