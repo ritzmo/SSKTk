@@ -44,6 +44,7 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 
 NSString *kProductsFetchedNotification = @"SStoreKitProductsFetched";
 NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
+NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid";
 
 @implementation SSKManager
 
@@ -105,6 +106,17 @@ NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 }
 
 #pragma mark - Keychain
+
++ (void)deleteObjectForKey:(NSString *)key
+{
+	NSError *error = nil;
+	[SFHFKeychainUtils deleteItemForUsername:key
+							  andServiceName:KEYCHAIN_SERVICE
+									   error:&error];
+
+	if(error)
+		NSLog(@"%@", [error localizedDescription]);
+}
 
 + (void)setObject:(id) object forKey:(NSString *)key
 {
@@ -209,6 +221,41 @@ NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 	return [self objectForKey:productIdentifier] != nil;
 }
 
+- (void)verifyProducts
+{
+	for(SSKProduct *product in self.products)
+	{
+		NSString *productIdentifier = product.productIdentifier;
+		NSData *receipt = [SSKManager dataForKey:productIdentifier];
+
+		productCompletionHandler_t cHandler = ^(BOOL success)
+		{
+			// failed to verify purchase or review privileges, revoke purchase
+			if(!success)
+			{
+				[SSKManager deleteObjectForKey:productIdentifier];
+				[[NSNotificationCenter defaultCenter] postNotificationName:kProductReceiptInvalidNotification
+																	object:productIdentifier
+																  userInfo:nil];
+			}
+		};
+		productErrorHandler_t eHandler = ^(NSError *error){ /* ignore */ };
+
+		if(receipt)
+		{
+#if defined(REVIEW_ALLOWED)
+			if(REVIEW_ALLOWED && [receipt isEqualToData:[@"REVIEW ACCESS" dataUsingEncoding:NSUTF8StringEncoding]])
+				[product reviewRequestCompletionHandler:cHandler
+										   errorHandler:eHandler];
+			else
+#endif
+			[product verifyReceipt:receipt
+						onComplete:cHandler
+					  errorHandler:eHandler];
+		}
+	}
+}
+
 - (void)buyProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler cancelHandler:(cancelHandler_t)cancelHandler errorHandler:(errorHandler_t)errorHandler
 {
 	NSString *productIdentifier = product.productIdentifier;
@@ -231,7 +278,8 @@ NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 
 #if defined(REVIEW_ALLOWED)
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[product reviewRequestCompletionHandler:^(BOOL success){
+		[product reviewRequestCompletionHandler:^(BOOL success)
+		{
 			if(success)
 			{
 				[self showAlertWithTitle:NSLocalizedString(@"Review request approved", @"")
@@ -242,9 +290,10 @@ NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 			else
 				[self enqueuePurchase:productIdentifier];
 		}
-								   errorHandler:^(NSError *error){
-									   [self enqueuePurchase:productIdentifier];
-								   }];
+								   errorHandler:^(NSError *error)
+		{
+			[self enqueuePurchase:productIdentifier];
+		}];
 	});
 #else
 	[self enqueuePurchase:productIdentifier];
@@ -294,23 +343,26 @@ NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 	}
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[product verifyReceipt:receipt
-					   onComplete:^(BOOL success){
-						   if(success)
-						   {
-							   [self rememberPurchaseOfProduct:productIdentifier withReceipt:receipt];
-							   [self successfullPurchase:productIdentifier];
-						   }
-						   else
-						   {
-							   NSError *error = [NSError errorWithDomain:sskErrorDomain
-																	code:101
-																userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedDescriptionKey]];
-							   [self erroneousPurchase:productIdentifier error:error];
-						   }
-					   }
-					 errorHandler:^(NSError *error){
-						 [self erroneousPurchase:productIdentifier error:error];
-					 }];
+					   onComplete:^(BOOL success)
+		{
+			if(success)
+			{
+				[self rememberPurchaseOfProduct:productIdentifier withReceipt:receipt];
+				[self successfullPurchase:productIdentifier];
+			}
+			else
+			{
+				NSError *error = [NSError errorWithDomain:sskErrorDomain
+													 code:101
+												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedDescriptionKey]];
+				[self erroneousPurchase:productIdentifier error:error];
+			}
+		}
+					 errorHandler:^(NSError *error)
+		{
+			// NOTE: how to properly handle this?
+			[self erroneousPurchase:productIdentifier error:error];
+		}];
 	});
 }
 

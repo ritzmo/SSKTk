@@ -84,6 +84,8 @@
 #if defined(REVIEW_ALLOWED)
 - (void)reviewRequestCompletionHandler:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
 {
+	if(!REVIEW_ALLOWED)
+		return completionHandler(NO);
 #if defined(OWN_SERVER)
 	completionHandler = cHandler;
 	errorHandler = eHandler;
@@ -108,7 +110,7 @@
 	connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
 	[connection start];
 #else
-	eHandler(nil);
+	completionHandler(NO)
 #endif
 }
 #endif
@@ -179,17 +181,13 @@
 	// TODO: add some sort of wrapper/encryption
 #endif
 	NSDictionary *dict = [data objectFromJSONData];
-	if([[dict objectForKey:@"status"] integerValue] == 0)
+	const BOOL isValid = ([[dict objectForKey:@"status"] integerValue] == 0);
+	if(isValid)
 	{
 		self.receipt = [dict objectForKey:@"receipt"];
-		if(completionHandler)
-			completionHandler(YES);
 	}
-	else
-	{
-		if(errorHandler)
-			errorHandler(nil);
-	}
+	if(completionHandler)
+		completionHandler(isValid);
 	data = nil;
 	self.connection = nil;
 	self.completionHandler = nil;

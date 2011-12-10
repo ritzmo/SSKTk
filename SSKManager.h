@@ -20,6 +20,7 @@ extern NSString *sskErrorDomain;
 
 extern NSString *kProductsFetchedNotification;
 extern NSString *kSubscriptionInvalidNotification;
+extern NSString *kProductReceiptInvalidNotification;
 
 // compatibility to MKStoreKit
 #define kProductFetchedNotification kProductsFetchedNotification
