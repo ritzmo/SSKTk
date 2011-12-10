@@ -12,7 +12,7 @@
 	#define KEYCHAIN_SERVICE @"SSKToolkit"
 #endif
 
-//#define REVIEW_ALLOWED
+//#define REVIEW_ALLOWED 1
 
 //#define OWN_SERVER @"http://www.myserver.com/mypath"
 
