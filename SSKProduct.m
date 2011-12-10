@@ -73,6 +73,7 @@
     [prod.connection start];
 }
 
+#if defined(REVIEW_ALLOWED)
 - (void)reviewRequestCompletionHandler:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
 {
 #if defined(OWN_SERVER)
@@ -102,6 +103,7 @@
 	eHandler(nil);
 #endif
 }
+#endif
 
 - (NSString *)stringValue
 {

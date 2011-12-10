@@ -12,6 +12,8 @@
 	#define KEYCHAIN_SERVICE @"SSKToolkit"
 #endif
 
+//#define REVIEW_ALLOWED
+
 //#define OWN_SERVER @"http://www.myserver.com/mypath"
 
 #ifndef kSharedSecret

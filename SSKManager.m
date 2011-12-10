@@ -217,6 +217,7 @@
 									nil] forKey:productIdentifier];
 	}
 
+#if defined(REVIEW_ALLOWED)
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[product reviewRequestCompletionHandler:^(BOOL success){
 			if(success)
@@ -233,6 +234,9 @@
 									   [self enqueuePurchase:productIdentifier];
 								   }];
 	});
+#else
+	[self enqueuePurchase:productIdentifier];
+#endif
 }
 
 - (void)restorePreviousPurchasesOnComplete:(completionHandler_t)completionHandler onError:(errorHandler_t)errorHandler

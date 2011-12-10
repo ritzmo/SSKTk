@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <StoreKit/StoreKit.h>
 
+#import "SSKConfig.h"
+
 typedef void (^productCompletionHandler_t)(BOOL success);
 typedef void (^productErrorHandler_t)(NSError *error);
 
@@ -22,6 +24,7 @@ typedef void (^productErrorHandler_t)(NSError *error);
  */
 + (SSKProduct *)withProduct:(SKProduct *)product;
 
+#if defined(REVIEW_ALLOWED)
 /*!
  @brief Check if review is allowed for this product.
  @param completionHandler
@@ -29,6 +32,7 @@ typedef void (^productErrorHandler_t)(NSError *error);
  @return
  */
 - (void)reviewRequestCompletionHandler:(productCompletionHandler_t)completionHandler errorHandler:(productErrorHandler_t)errorHandler;
+#endif
 
 /*!
  @brief Check if a given receipt is valid.
