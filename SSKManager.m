@@ -23,6 +23,7 @@
 - (void)showAlertWithTitle:(NSString *)title message:(NSString *)message;
 - (void)enqueuePurchase:(NSString *)productIdentifier;
 - (void)rememberPurchaseOfProduct:(NSString *)productIdentifier withReceipt:(NSData *)receipt;
+- (SSKProduct *)productForProductIdentifier:(NSString *)productIdentifier;
 
 @property (nonatomic, strong) NSDictionary *consumables;
 @property (nonatomic, strong) NSArray *nonConsumables;
@@ -35,7 +36,14 @@
 @property (nonatomic, copy) errorHandler_t onRestoreError;
 @end
 
+@interface SSKProduct(Product)
+@property (nonatomic, strong) SKProduct *product;
+@end
+
 NSString *sskErrorDomain = @"sskErrorDomain";
+
+NSString *kProductsFetchedNotification = @"SStoreKitProductsFetched";
+NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 
 @implementation SSKManager
 
@@ -278,9 +286,14 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 
 - (void)completePurchase:(NSString *)productIdentifier withReceipt:(NSData *)receipt
 {
-	// TODO: handle subscriptions
+	SSKProduct *product = [self productForProductIdentifier:productIdentifier];
+	if(!product)
+	{
+		NSLog(@"Failed to obtain product for product identifier %@.", productIdentifier);
+		product = [[SSKProduct alloc] init];
+	}
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[SSKProduct verifyReceipt:receipt
+		[product verifyReceipt:receipt
 					   onComplete:^(BOOL success){
 						   if(success)
 						   {
@@ -315,10 +328,8 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 {
 	if ([SKPaymentQueue canMakePayments])
 	{
-		NSArray *allIds = [self.products valueForKey:@"productIdentifier"];
-		NSUInteger index = [allIds indexOfObject:productIdentifier];
-
-		if(index == NSNotFound)
+		SSKProduct *product = [self productForProductIdentifier:productIdentifier];
+		if(!product)
 		{
 			NSError *error = [NSError errorWithDomain:sskErrorDomain
 												 code:102
@@ -326,7 +337,7 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 			return [self erroneousPurchase:productIdentifier error:error];
 		}
 
-		SKProduct *thisProduct = [self.products objectAtIndex:index];
+		SKProduct *thisProduct = product.product;
 		SKPayment *payment = [SKPayment paymentWithProduct:thisProduct];
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[[SKPaymentQueue defaultQueue] addPayment:payment];
@@ -364,13 +375,54 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 	}
 }
 
+- (SSKProduct *)productForProductIdentifier:(NSString *)productIdentifier
+{
+	NSArray *allIds = [self.products valueForKey:@"productIdentifier"];
+	NSUInteger index = [allIds indexOfObject:productIdentifier];
+	return (index == NSNotFound) ? nil : [self.products objectAtIndex:index];
+}
+
 #pragma mark - SKProductsRequestDelegate
 
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response
 {
 	for(SKProduct *product in response.products)
 	{
-		[self.products addObject:[SSKProduct withProduct:product]];
+		NSString *subscriptionDays = [self.subscriptions objectForKey:product.productIdentifier];
+		if(subscriptionDays)
+		{
+			SSKProduct *prod = [SSKProduct subscriptionWithProduct:product validForDays:[subscriptionDays integerValue]];
+			[self.products addObject:prod];
+
+			// verify if we have an active purchase
+			NSString *productIdentifier = product.productIdentifier;
+			NSData *receipt = [SSKManager dataForKey:productIdentifier];
+			if(receipt)
+			{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[prod verifyReceipt:receipt
+								   onComplete:^(BOOL success){
+									   if(success)
+									   {
+										   NSLog(@"Subscription %@ is active", productIdentifier);
+									   }
+									   else
+									   {
+										   [[NSNotificationCenter defaultCenter] postNotificationName:kSubscriptionInvalidNotification
+																							   object:productIdentifier
+																							 userInfo:nil];
+										   NSLog(@"Subscription %@ is inactive", productIdentifier);
+										   // TODO: delete receipt?
+									   }
+								   }
+								 errorHandler:^(NSError *error){
+									 NSLog(@"Unable to verify receipt %@ for product %@.", receipt, productIdentifier);
+								 }];
+				});
+			}
+		}
+		else
+			[self.products addObject:[SSKProduct withProduct:product]];
 #ifndef NDEBUG
 		NSLog(@"Feature: %@, Cost: %f, ID: %@", [product localizedTitle], [[product price] doubleValue], [product productIdentifier]);
 #endif
@@ -382,13 +434,15 @@ NSString *sskErrorDomain = @"sskErrorDomain";
 #endif
 
 	[[NSNotificationCenter defaultCenter] postNotificationName:kProductFetchedNotification
-														object:[NSNumber numberWithBool:YES]];
+														object:[NSNumber numberWithBool:YES]
+													  userInfo:nil];
 }
 
 - (void)request:(SKRequest *)request didFailWithError:(NSError *)error
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:kProductFetchedNotification
-														object:[NSNumber numberWithBool:NO]];
+														object:[NSNumber numberWithBool:NO]
+													  userInfo:nil];
 }
 
 #pragma mark - SKPaymentTransactionObserver

@@ -25,11 +25,13 @@
 @property (nonatomic, strong) NSMutableData *data;
 @property (nonatomic, copy) productErrorHandler_t errorHandler;
 @property (nonatomic, strong) SKProduct *product;
+@property (nonatomic, strong) NSDictionary *receipt;
+@property (nonatomic) NSInteger subscriptionDays;
 @end
 
 @implementation SSKProduct
 
-@synthesize connection, completionHandler, data, errorHandler, product;
+@synthesize connection, completionHandler, data, errorHandler, product, receipt, subscriptionDays;
 
 + (SSKProduct *)withProduct:(SKProduct *)product
 {
@@ -38,11 +40,17 @@
 	return prod;
 }
 
-+ (void)verifyReceipt:(NSData *)receipt onComplete:(productCompletionHandler_t)completionHandler errorHandler:(productErrorHandler_t)errorHandler
++ (SSKProduct *)subscriptionWithProduct:(SKProduct *)product validForDays:(NSInteger)days
 {
-	SSKProduct *prod = [[SSKProduct alloc] init];
-	prod.completionHandler = completionHandler;
-	prod.errorHandler = errorHandler;
+	SSKProduct *prod = [self withProduct:product];
+	prod.subscriptionDays = days;
+	return prod;
+}
+
+- (void)verifyReceipt:(NSData *)receiptData onComplete:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
+{
+	completionHandler = cHandler;
+	errorHandler = eHandler;
 
 #if defined(OWN_SERVER)
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"verifyProduct.php"]];
@@ -59,9 +67,9 @@
 
 	NSString *postData = nil;
 #if defined(OWN_SERVER)
-	postData = [NSString stringWithFormat:@"receiptdata=%@", [receipt base64EncodedString]];
+	postData = [NSString stringWithFormat:@"receiptdata=%@", [receiptData base64EncodedString]];
 #else
-	postData = [NSString stringWithFormat:@"{\"receipt-data\":\"%@\" \"password\":\"%@\"}", [receipt base64EncodedString], kSharedSecret];
+	postData = [NSString stringWithFormat:@"{\"receipt-data\":\"%@\" \"password\":\"%@\"}", [receiptData base64EncodedString], kSharedSecret];
 #endif
 
 	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
@@ -69,8 +77,8 @@
 
 	[theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
 
-	prod.connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
-	[prod.connection start];
+	connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
+	[connection start];
 }
 
 #if defined(REVIEW_ALLOWED)
@@ -126,6 +134,33 @@
 	return product.productIdentifier;
 }
 
+- (BOOL)subscriptionActive
+{
+	if([self.receipt objectForKey:@"expires_date"])
+	{
+        NSTimeInterval expiresDate = [[self.receipt objectForKey:@"expires_date"] doubleValue]/1000.0;
+        return expiresDate > [[NSDate date] timeIntervalSince1970];
+    }
+	else
+	{
+        NSString *purchase_data = [self.receipt objectForKey:@"purchase_date"];
+        if(!purchase_data)
+		{
+            NSLog(@"Receipt is invalid: %@", self.receipt);
+            return NO;
+        }
+        NSDateFormatter *df = [[NSDateFormatter alloc] init];
+        purchase_data = [purchase_data stringByReplacingOccurrencesOfString:@" Etc/GMT" withString:@""];
+        NSLocale *POSIXLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+        [df setLocale:POSIXLocale];
+        [df setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+        [df setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        NSDate *date = [df dateFromString:purchase_data];
+        NSInteger numberOfDays = [date timeIntervalSinceNow] / (-86400.0);
+        return (subscriptionDays > numberOfDays);
+    }
+}
+
 #pragma mark - NSURLConnectionDelegate methods
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
@@ -141,14 +176,12 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
 #if defined(OWN_SERVER)
-	NSString *responseString = [[NSString alloc] initWithData:data
-													 encoding:NSASCIIStringEncoding];
-	if([responseString isEqualToString:@"YES"])
-#else
+	// TODO: add some sort of wrapper/encryption
+#endif
 	NSDictionary *dict = [data objectFromJSONData];
 	if([[dict objectForKey:@"status"] integerValue] == 0)
-#endif
 	{
+		self.receipt = [dict objectForKey:@"receipt"];
 		if(completionHandler)
 			completionHandler(YES);
 	}

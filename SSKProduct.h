@@ -24,6 +24,15 @@ typedef void (^productErrorHandler_t)(NSError *error);
  */
 + (SSKProduct *)withProduct:(SKProduct *)product;
 
+/*!
+ @brief Create a new wrapper for a SKProduct.
+ Use this initializer for subscriptions.
+ @param product
+ @param days
+ @return
+ */
++ (SSKProduct *)subscriptionWithProduct:(SKProduct *)product validForDays:(NSInteger)days;
+
 #if defined(REVIEW_ALLOWED)
 /*!
  @brief Check if review is allowed for this product.
@@ -42,7 +51,7 @@ typedef void (^productErrorHandler_t)(NSError *error);
  @param errorHandler
  @return
  */
-+ (void)verifyReceipt:(NSData *)receipt onComplete:(productCompletionHandler_t)completionHandler errorHandler:(productErrorHandler_t)errorHandler;
+- (void)verifyReceipt:(NSData *)receipt onComplete:(productCompletionHandler_t)completionHandler errorHandler:(productErrorHandler_t)errorHandler;
 
 /*!
  @brief String representation for this product.
@@ -55,5 +64,11 @@ typedef void (^productErrorHandler_t)(NSError *error);
  @brief Product identifier.
  */
 @property (nonatomic, readonly) NSString *productIdentifier;
+
+/*!
+ @brief Is this subscription active?
+ @note Return is undefined if product is not actually a subscription product.
+ */
+@property (nonatomic, readonly) BOOL subscriptionActive;
 
 @end

@@ -18,7 +18,12 @@ typedef void (^errorHandler_t)(NSString *productIdentifier, NSError *error);
 
 extern NSString *sskErrorDomain;
 
-#define kProductFetchedNotification @"SStoreKitProductsFetched"
+extern NSString *kProductsFetchedNotification;
+extern NSString *kSubscriptionInvalidNotification;
+
+// compatibility to MKStoreKit
+#define kProductFetchedNotification kProductsFetchedNotification
+#define kSubscriptionsInvalidNotification kSubscriptionInvalidNotification
 
 @interface SSKManager : NSObject<SKProductsRequestDelegate, SKPaymentTransactionObserver>
 /*!
