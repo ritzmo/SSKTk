@@ -12,6 +12,7 @@
 
 #import "JSONKit.h"
 #import "NSData+Base64.h"
+#import "NSString+URLEncode.h"
 
 #ifndef NDEBUG
 	#define kReceiptValidationURL @"https://sandbox.itunes.apple.com/verifyReceipt"
@@ -81,6 +82,36 @@
 	[connection start];
 }
 
+- (void)redeemCode:(NSString *)code onComplete:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
+{
+#if defined(OWN_SERVER)
+	completionHandler = cHandler;
+	errorHandler = eHandler;
+
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"redeemCode.php"]];
+	NSString *uniqueID = [SSKManager sharedManager].uuidForReview;
+
+	NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url
+															  cachePolicy:NSURLRequestReloadIgnoringCacheData
+														  timeoutInterval:60];
+
+	[theRequest setHTTPMethod:@"POST"];
+	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+
+	NSString *postData = [NSString stringWithFormat:@"productid=%@&code=%@&uuid=%@", product.productIdentifier, [code urlencode], uniqueID];
+
+	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
+	[theRequest setValue:length forHTTPHeaderField:@"Content-Length"];
+
+	[theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
+
+	connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
+	[connection start];
+#else
+	cHandler(NO);
+#endif
+}
+
 #if defined(REVIEW_ALLOWED)
 - (void)reviewRequestCompletionHandler:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
 {
@@ -110,7 +141,7 @@
 	connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
 	[connection start];
 #else
-	completionHandler(NO)
+	cHandler(NO)
 #endif
 }
 #endif
@@ -181,11 +212,22 @@
 	// TODO: add some sort of wrapper/encryption
 #endif
 	NSDictionary *dict = [data objectFromJSONData];
-	const BOOL isValid = ([[dict objectForKey:@"status"] integerValue] == 0);
+	const NSString *status = [dict objectForKey:@"status"];
+	const BOOL isValid = (status && [status integerValue] == 0);
+	const NSString *exception = [dict objectForKey:@"exception"];
 	if(isValid)
 	{
 		self.receipt = [dict objectForKey:@"receipt"];
 	}
+	else if(exception && errorHandler)
+	{
+		NSError *error = [NSError errorWithDomain:sskErrorDomain
+											 code:104
+										 userInfo:[NSDictionary dictionaryWithObject:exception forKey:NSLocalizedDescriptionKey]];
+		errorHandler(error);
+		completionHandler = nil; // abort calling the completion handler too
+	}
+
 	if(completionHandler)
 		completionHandler(isValid);
 	data = nil;

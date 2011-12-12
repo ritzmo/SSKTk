@@ -44,6 +44,15 @@ typedef void (^productErrorHandler_t)(NSError *error);
 #endif
 
 /*!
+ @brief Try to redeem code for this product.
+ @param code
+ @param completionHandler
+ @param errorHandler
+ @return
+ */
+- (void)redeemCode:(NSString *)code onComplete:(productCompletionHandler_t)completionHandler errorHandler:(productErrorHandler_t)errorHandler;
+
+/*!
  @brief Check if a given receipt is valid.
  @note Does not validate if the receipt is for a certain product.
  @param receipt

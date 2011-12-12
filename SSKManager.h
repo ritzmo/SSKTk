@@ -58,6 +58,15 @@ extern NSString *kProductReceiptInvalidNotification;
 + (BOOL)isFeaturePurchased:(NSString *)productIdentifier;
 
 /*!
+ @brief Attempt to redeem code for purchase.
+ @param code
+ @param product
+ @param completionHandler
+ @param errorHandler
+ */
+- (void)redeemCode:(NSString *)code forProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler;
+
+/*!
  @brief Initiate purchase for a given product identifier.
  @note Multiple purchases may happen at once, but a product can not be queued multiple times simultaneously.
  @param product

@@ -256,6 +256,36 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	}
 }
 
+- (void)redeemCode:(NSString *)code forProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler
+{
+	completionHandler_t cHandler = [completionHandler copy];
+	errorHandler_t eHandler = [errorHandler copy];
+	NSString *productIdentifier = product.productIdentifier;
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[product redeemCode:code
+				 onComplete:^(BOOL success)
+		{
+			if(success)
+			{
+				// TODO: remember
+				cHandler(productIdentifier);
+			}
+			else
+			{
+				NSError *error = [NSError errorWithDomain:sskErrorDomain
+													 code:103
+												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedDescriptionKey]];
+				errorHandler(productIdentifier, error);
+			}
+		}
+			   errorHandler:^(NSError *error)
+		{
+			eHandler(productIdentifier, error);
+		}];
+	});
+}
+
 - (void)buyProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler cancelHandler:(cancelHandler_t)cancelHandler errorHandler:(errorHandler_t)errorHandler
 {
 	NSString *productIdentifier = product.productIdentifier;
