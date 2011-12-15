@@ -76,7 +76,7 @@
         $info = getReceiptData($receipt, $isSandbox);
     }
     catch (Exception $ex) {
-		$info = ex->getMessage();
+		$info = $ex->getMessage();
     }
 	// TODO: add some kind of encryption
 	echo($info);
