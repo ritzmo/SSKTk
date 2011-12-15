@@ -70,7 +70,7 @@
 #if defined(OWN_SERVER)
 	postData = [NSString stringWithFormat:@"receiptdata=%@", [receiptData base64EncodedString]];
 #else
-	postData = [NSString stringWithFormat:@"{\"receipt-data\":\"%@\" \"password\":\"%@\"}", [receiptData base64EncodedString], kSharedSecret];
+	postData = [NSString stringWithFormat:@"{\"receipt-data\":\"%@\", \"password\":\"%@\"}", [receiptData base64EncodedString], kSharedSecret];
 #endif
 
 	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
