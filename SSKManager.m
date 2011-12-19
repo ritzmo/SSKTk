@@ -125,10 +125,19 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	{
 		objectString = [[NSString alloc] initWithData:object encoding:NSUTF8StringEncoding];
 	}
-	if([object isKindOfClass:[NSNumber class]])
+	else if([object respondsToSelector:@selector(stringValue)])
 	{
-		objectString = [(NSNumber*)object stringValue];
+		objectString = [object stringValue];
 	}
+	else if([object isKindOfClass:[NSString class]])
+	{
+		objectString = object;
+	}
+	else
+	{
+		[NSException raise:@"ExcUnknownObjectType" format:@"[SSKManager setObject:forKey:] object for key %@ has invalid type: %@", key, object];
+	}
+
 	NSError *error = nil;
 	[SFHFKeychainUtils storeUsername:key
 						 andPassword:objectString
@@ -154,7 +163,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 + (NSNumber *)numberForKey:(NSString *)key
 {
-	return [NSNumber numberWithInt:[[self objectForKey:key] intValue]];
+	return [NSNumber numberWithInteger:[[self objectForKey:key] integerValue]];
 }
 
 + (NSData *)dataForKey:(NSString *)key
