@@ -183,7 +183,12 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	NSError *error = nil;
 	for(NSString *productIdentifier in productsArray)
 	{
-		[SFHFKeychainUtils deleteItemForUsername:productIdentifier andServiceName:KEYCHAIN_SERVICE error:&error];
+		[SFHFKeychainUtils deleteItemForUsername:productIdentifier
+								  andServiceName:KEYCHAIN_SERVICE
+										   error:&error];
+		[SFHFKeychainUtils deleteItemForUsername:[NSString stringWithFormat:@"%@+Code", productIdentifier]
+								  andServiceName:KEYCHAIN_SERVICE
+										   error:nil]; // ignore errors for this one
 	}
 	return error == nil;
 }
