@@ -223,7 +223,7 @@
 	{
 		NSError *error = [NSError errorWithDomain:sskErrorDomain
 											 code:104
-										 userInfo:[NSDictionary dictionaryWithObject:exception forKey:NSLocalizedDescriptionKey]];
+										 userInfo:[NSDictionary dictionaryWithObject:exception forKey:NSLocalizedFailureReasonErrorKey]];
 		errorHandler(error);
 		completionHandler = nil; // abort calling the completion handler too
 	}

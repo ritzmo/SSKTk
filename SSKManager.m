@@ -23,6 +23,7 @@
 - (void)showAlertWithTitle:(NSString *)title message:(NSString *)message;
 - (void)enqueuePurchase:(NSString *)productIdentifier;
 - (void)rememberPurchaseOfProduct:(NSString *)productIdentifier withReceipt:(NSData *)receipt;
+- (void)redeemCode:(NSString *)code forProductIdentifier:(NSString *)productIdentifier withProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler;
 - (SSKProduct *)productForProductIdentifier:(NSString *)productIdentifier;
 
 @property (nonatomic, strong) NSDictionary *consumables;
@@ -267,32 +268,12 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 - (void)redeemCode:(NSString *)code forProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler
 {
-	completionHandler_t cHandler = [completionHandler copy];
-	errorHandler_t eHandler = [errorHandler copy];
-	NSString *productIdentifier = product.productIdentifier;
+	[self redeemCode:code forProductIdentifier:product.productIdentifier withProduct:product completionHandler:completionHandler errorHandler:errorHandler];
+}
 
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[product redeemCode:code
-				 onComplete:^(BOOL success)
-		{
-			if(success)
-			{
-				// TODO: remember
-				cHandler(productIdentifier);
-			}
-			else
-			{
-				NSError *error = [NSError errorWithDomain:sskErrorDomain
-													 code:103
-												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedDescriptionKey]];
-				errorHandler(productIdentifier, error);
-			}
-		}
-			   errorHandler:^(NSError *error)
-		{
-			eHandler(productIdentifier, error);
-		}];
-	});
+- (void)redeemCode:(NSString *)code forProductIdentifier:(NSString *)productIdentifier completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler
+{
+	[self redeemCode:code forProductIdentifier:productIdentifier withProduct:nil completionHandler:completionHandler errorHandler:errorHandler];
 }
 
 - (void)buyProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler cancelHandler:(cancelHandler_t)cancelHandler errorHandler:(errorHandler_t)errorHandler
@@ -305,7 +286,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		{
 			errorHandler(productIdentifier, [NSError errorWithDomain:sskErrorDomain
 																code:100
-															userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"There already is a pending request for this product.", @"") forKey:NSLocalizedDescriptionKey]]);
+															userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"There already is a pending request for this product.", @"") forKey:NSLocalizedFailureReasonErrorKey]]);
 			return;
 		}
 		[pendingRequests setObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -393,7 +374,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 			{
 				NSError *error = [NSError errorWithDomain:sskErrorDomain
 													 code:101
-												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedDescriptionKey]];
+												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
 				[self erroneousPurchase:productIdentifier error:error];
 			}
 		}
@@ -424,7 +405,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		{
 			NSError *error = [NSError errorWithDomain:sskErrorDomain
 												 code:102
-											 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Unable to find product for the given product identifier.", @"") forKey:NSLocalizedDescriptionKey]];
+											 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Unable to find product for the given product identifier.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
 			return [self erroneousPurchase:productIdentifier error:error];
 		}
 
@@ -474,6 +455,38 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 			return product;
 	}
 	return nil;
+}
+
+- (void)redeemCode:(NSString *)code forProductIdentifier:(NSString *)productIdentifier withProduct:(SSKProduct *)product completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler
+{
+	completionHandler_t cHandler = [completionHandler copy];
+	errorHandler_t eHandler = [errorHandler copy];
+	// create dummy product to handle request if none exists
+	if(product == nil)
+		product = [[SSKProduct alloc] init];
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[product redeemCode:code
+				 onComplete:^(BOOL success)
+		 {
+			 if(success)
+			 {
+				 // TODO: remember
+				 cHandler(productIdentifier);
+			 }
+			 else
+			 {
+				 NSError *error = [NSError errorWithDomain:sskErrorDomain
+													  code:103
+												  userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
+				 errorHandler(productIdentifier, error);
+			 }
+		 }
+			   errorHandler:^(NSError *error)
+		 {
+			 eHandler(productIdentifier, error);
+		 }];
+	});
 }
 
 #pragma mark - SKProductsRequestDelegate

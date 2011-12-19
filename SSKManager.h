@@ -59,6 +59,16 @@ extern NSString *kProductReceiptInvalidNotification;
 
 /*!
  @brief Attempt to redeem code for purchase.
+ Basically the same as [SSKManager reddemCode:forProduct:completionHandler:errorHandler] but without requiring the proper product.
+ @param code
+ @param productIdentifier
+ @param completionHandler
+ @param errorHandler
+ */
+- (void)redeemCode:(NSString *)code forProductIdentifier:(NSString *)productIdentifier completionHandler:(completionHandler_t)completionHandler errorHandler:(errorHandler_t)errorHandler;
+
+/*!
+ @brief Attempt to redeem code for purchase.
  @param code
  @param product
  @param completionHandler
