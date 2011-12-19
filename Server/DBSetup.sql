@@ -1,28 +1,39 @@
 -- phpMyAdmin SQL Dump
--- version 2.11.9.5
+-- version 3.4.6
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 15, 2009 at 08:38 AM
--- Server version: 5.0.81
--- PHP Version: 5.2.9
+-- Generation Time: Dec 19, 2011 at 09:31 PM
+-- Server version: 5.0.91
+-- PHP Version: 5.3.8-pl0-gentoo
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
 
 --
--- Database: `mugunth1_udid`
+-- Database: `ritzmosql1`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `products`
+-- Table structure for table `codes`
 --
 
-CREATE TABLE IF NOT EXISTS `products` (
-  `productid` varchar(255) NOT NULL,
-  `productName` varchar(30) NOT NULL,
-  `productDesc` varchar(255) NOT NULL
+CREATE TABLE IF NOT EXISTS `codes` (
+  `uuid1` varchar(40) NOT NULL,
+  `uuid2` varchar(40) NOT NULL,
+  `uuid3` varchar(40) NOT NULL,
+  `uuid4` varchar(40) NOT NULL,
+  `uuid5` varchar(40) NOT NULL,
+  `productid` varchar(100) NOT NULL,
+  `code` varchar(6) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -39,3 +50,7 @@ CREATE TABLE IF NOT EXISTS `requests` (
   `status` tinyint(1) NOT NULL default '0',
   `lastUpdated` timestamp NOT NULL default CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
