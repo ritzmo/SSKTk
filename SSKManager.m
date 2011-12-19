@@ -459,9 +459,12 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 - (SSKProduct *)productForProductIdentifier:(NSString *)productIdentifier
 {
-	NSArray *allIds = [self.products valueForKey:@"productIdentifier"];
-	NSUInteger index = [allIds indexOfObject:productIdentifier];
-	return (index == NSNotFound) ? nil : [self.products objectAtIndex:index];
+	for(SSKProduct *product in self.products)
+	{
+		if([product.productIdentifier isEqualToString:productIdentifier])
+			return product;
+	}
+	return nil;
 }
 
 #pragma mark - SKProductsRequestDelegate
