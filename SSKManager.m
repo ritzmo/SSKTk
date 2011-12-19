@@ -259,6 +259,13 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 										   errorHandler:eHandler];
 			else
 #endif
+#if defined(OWN_SERVER)
+			if([receipt isEqualToData:[@"CODE REDEEMED" dataUsingEncoding:NSUTF8StringEncoding]])
+				[product redeemCode:[SSKManager objectForKey:[NSString stringWithFormat:@"%@+Code", productIdentifier]]
+						 onComplete:cHandler
+					   errorHandler:eHandler];
+			else
+#endif
 			[product verifyReceipt:receipt
 						onComplete:cHandler
 					  errorHandler:eHandler];
@@ -471,7 +478,8 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		 {
 			 if(success)
 			 {
-				 // TODO: remember
+				 [self rememberPurchaseOfProduct:productIdentifier withReceipt:[@"CODE REEEMED" dataUsingEncoding:NSUTF8StringEncoding]];
+				 [SSKManager setObject:code forKey:[NSString stringWithFormat:@"%@+Code", productIdentifier]];
 				 cHandler(productIdentifier);
 			 }
 			 else
