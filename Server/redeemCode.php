@@ -18,10 +18,11 @@
 		$uuid = filter_input(INPUT_POST, 'uuid', FILTER_SANITIZE_STRING);
 
 		// and now really make sure nothing hurts our database
+		$prod = mysql_real_escape_string($prod);
 		$code = mysql_real_escape_string($code);
 
 		// execute query
-		$res = mysql_query("SELECT * FROM codes WHERE code='$code'", $con);
+		$res = mysql_query("SELECT * FROM codes WHERE code='$code' AND prod='$prod'", $con);
 
 		if(!$res || mysql_num_rows($res) != 1)
 			$returnString = '{"status":-1,"exception":"Invalid or no response from database."}';
