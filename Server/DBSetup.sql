@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `codes` (
   `uuid3` varchar(40) NOT NULL,
   `uuid4` varchar(40) NOT NULL,
   `uuid5` varchar(40) NOT NULL,
-  `productid` varchar(100) NOT NULL,
+  `productid` varchar(100) character set latin1 collate latin1_general_cs NOT NULL,
   `code` varchar(6) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

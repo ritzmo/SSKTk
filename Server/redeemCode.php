@@ -14,7 +14,7 @@
 	{
 		// first filter with php
 		$prod = filter_input(INPUT_POST, 'productid', FILTER_SANITIZE_STRING);
-		$code = strtolower(filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING));
+		$code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
 		$uuid = filter_input(INPUT_POST, 'uuid', FILTER_SANITIZE_STRING);
 
 		// and now really make sure nothing hurts our database
@@ -22,7 +22,7 @@
 		$code = mysql_real_escape_string($code);
 
 		// execute query
-		$res = mysql_query("SELECT * FROM codes WHERE LOWER(code)='$code' AND productid='$prod'", $con);
+		$res = mysql_query("SELECT * FROM codes WHERE code='$code' AND productid='$prod'", $con);
 
 		if(!$res || mysql_num_rows($res) != 1)
 			$returnString = '{"status":-1,"exception":"Invalid or no response from database."}';
@@ -37,7 +37,7 @@
 				{
 					// update table so it reads this value
 					$uuid = mysql_real_escape_string($uuid);
-					$res = mysql_query("UPDATE codes SET $field='$uuid' WHERE code='$code'", $con);
+					$res = mysql_query("UPDATE codes SET $field='$uuid' WHERE code='$code' AND productid='$prod'", $con);
 					if(mysql_affected_rows() != 1)
 					{
 						$returnString = '{"status":-1,"exception":"Unable to update database."}';
@@ -51,6 +51,7 @@
 				{
 					// all is fine
 					$success = 2;
+					break;
 				}
 			}
 			switch($success)
