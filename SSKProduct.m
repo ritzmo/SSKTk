@@ -50,8 +50,8 @@
 
 - (void)verifyReceipt:(NSData *)receiptData onComplete:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
 {
-	completionHandler = cHandler;
-	errorHandler = eHandler;
+	self.completionHandler = cHandler;
+	self.errorHandler = eHandler;
 
 #if defined(OWN_SERVER)
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"verifyProduct.php"]];
@@ -85,8 +85,8 @@
 - (void)redeemCode:(NSString *)code onComplete:(productCompletionHandler_t)cHandler errorHandler:(productErrorHandler_t)eHandler
 {
 #if defined(OWN_SERVER)
-	completionHandler = cHandler;
-	errorHandler = eHandler;
+	self.completionHandler = cHandler;
+	self.errorHandler = eHandler;
 
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"redeemCode.php"]];
 	NSString *uniqueID = [SSKManager sharedManager].uuidForReview;
@@ -118,8 +118,8 @@
 	if(!REVIEW_ALLOWED)
 		return completionHandler(NO);
 #if defined(OWN_SERVER)
-	completionHandler = cHandler;
-	errorHandler = eHandler;
+	self.completionHandler = cHandler;
+	self.errorHandler = eHandler;
 
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"featureCheck.php"]];
 	NSString *uniqueID = [SSKManager sharedManager].uuidForReview;
@@ -141,6 +141,7 @@
 	connection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
 	[connection start];
 #else
+#warning Review might be allowed but no server defined, please check your configuration!
 	cHandler(NO)
 #endif
 }
@@ -225,7 +226,7 @@
 											 code:104
 										 userInfo:[NSDictionary dictionaryWithObject:exception forKey:NSLocalizedFailureReasonErrorKey]];
 		errorHandler(error);
-		completionHandler = nil; // abort calling the completion handler too
+		self.completionHandler = nil; // avoid calling the completion handler too
 	}
 
 	if(completionHandler)

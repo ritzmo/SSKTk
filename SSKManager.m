@@ -329,7 +329,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 				 NSError *error = [NSError errorWithDomain:sskErrorDomain
 													  code:103
 												  userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
-				 errorHandler(productIdentifier, error);
+				 eHandler(productIdentifier, error);
 			 }
 		 }
 			   errorHandler:^(NSError *error)
@@ -364,7 +364,8 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 									[completionHandler copy], @"completionHandler",
 									[cancelHandler copy], @"cancelHandler",
 									[errorHandler copy], @"errorHandler",
-									nil] forKey:productIdentifier];
+									nil]
+							forKey:productIdentifier];
 	}
 
 #if defined(REVIEW_ALLOWED)
@@ -432,9 +433,10 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		NSLog(@"Failed to obtain product for product identifier %@.", productIdentifier);
 		product = [[SSKProduct alloc] init];
 	}
+
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[product verifyReceipt:receipt
-					   onComplete:^(BOOL success)
+					onComplete:^(BOOL success)
 		{
 			if(success)
 			{
@@ -449,7 +451,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 				[self erroneousPurchase:productIdentifier error:error];
 			}
 		}
-					 errorHandler:^(NSError *error)
+				  errorHandler:^(NSError *error)
 		{
 			// NOTE: how to properly handle this?
 			[self erroneousPurchase:productIdentifier error:error];
