@@ -98,7 +98,7 @@
 	[theRequest setHTTPMethod:@"POST"];
 	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
 
-	NSString *postData = [NSString stringWithFormat:@"productid=%@&code=%@&uuid=%@", [product.productIdentifier urlencode], [code urlencode], [uniqueID urlencode]];
+	NSString *postData = [NSString stringWithFormat:@"productid=%@&code=%@&uuid=%@", [self.productIdentifier urlencode], [code urlencode], [uniqueID urlencode]];
 
 	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
 	[theRequest setValue:length forHTTPHeaderField:@"Content-Length"];
@@ -131,7 +131,7 @@
 	[theRequest setHTTPMethod:@"POST"];
 	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
 
-	NSString *postData = [NSString stringWithFormat:@"productid=%@&uuid=%@", [product.productIdentifier urlencode], [uniqueID urlencode]];
+	NSString *postData = [NSString stringWithFormat:@"productid=%@&uuid=%@", [self.productIdentifier urlencode], [uniqueID urlencode]];
 
 	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
 	[theRequest setValue:length forHTTPHeaderField:@"Content-Length"];
