@@ -13,8 +13,8 @@
 	else
 	{
 		// first filter with php
-		$prod = filter_input(INPUT_POST, 'productid', FILTER_SANITIZE_STRING);
-		$code = filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING);
+		$prod = strtolower(filter_input(INPUT_POST, 'productid', FILTER_SANITIZE_STRING));
+		$code = strtolower(filter_input(INPUT_POST, 'code', FILTER_SANITIZE_STRING));
 		$uuid = filter_input(INPUT_POST, 'uuid', FILTER_SANITIZE_STRING);
 
 		// and now really make sure nothing hurts our database
@@ -22,7 +22,7 @@
 		$code = mysql_real_escape_string($code);
 
 		// execute query
-		$res = mysql_query("SELECT * FROM codes WHERE code='$code' AND prod='$prod'", $con);
+		$res = mysql_query("SELECT * FROM codes WHERE LOWER(code)='$code' AND LOWER(productid)='$prod'", $con);
 
 		if(!$res || mysql_num_rows($res) != 1)
 			$returnString = '{"status":-1,"exception":"Invalid or no response from database."}';
@@ -66,7 +66,7 @@
 					break;
 			}
 		}
-		mysql_close($hd);
+		mysql_close($con);
 	}
 	echo $returnString;
 ?>
