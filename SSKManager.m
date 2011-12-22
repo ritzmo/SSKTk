@@ -431,8 +431,11 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	if(!product)
 	{
 		NSLog(@"Failed to obtain product for product identifier %@.", productIdentifier);
-		product = [[SSKProduct alloc] init];
+		product = [SSKBlindProduct productWithIdentifier:productIdentifier];
 	}
+#ifndef NDEBUG
+	NSLog(@"Got product %@ for identifier %@ with receipt %@", product, productIdentifier, [[NSString alloc] initWithData:receipt encoding:NSUTF8StringEncoding]);
+#endif
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[product verifyReceipt:receipt
