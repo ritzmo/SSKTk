@@ -75,6 +75,10 @@ NSString *kProductsFetchedNotification = @"SStoreKitProductsFetched";
 NSString *kSubscriptionInvalidNotification = @"SStoreKitSubscriptionInvalid";
 NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid";
 
+#define kCompletionHandler	@"completionHandler"
+#define kErrorHandler		@"errorHandler"
+#define kCancelHandler		@"cancelHandler"
+
 #pragma mark - Implementation
 
 @implementation SSKManager
@@ -361,9 +365,9 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 			return;
 		}
 		[pendingRequests setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									[completionHandler copy], @"completionHandler",
-									[cancelHandler copy], @"cancelHandler",
-									[errorHandler copy], @"errorHandler",
+									[completionHandler copy], kCompletionHandler,
+									[cancelHandler copy], kCancelHandler,
+									[errorHandler copy], kErrorHandler,
 									nil]
 							forKey:productIdentifier];
 	}
@@ -403,7 +407,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 - (void)successfullPurchase:(NSString *)productIdentifier
 {
-	completionHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:@"completionHandler"];
+	completionHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:kCompletionHandler];
 	if(handler)
 		handler(productIdentifier);
 	[pendingRequests removeObjectForKey:productIdentifier];
@@ -411,7 +415,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 - (void)canceledPurchase:(NSString *)productIdentifier
 {
-	cancelHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:@"cancelHandler"];
+	cancelHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:kCancelHandler];
 	if(handler)
 		handler(productIdentifier);
 	[pendingRequests removeObjectForKey:productIdentifier];
@@ -419,7 +423,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 
 - (void)erroneousPurchase:(NSString *)productIdentifier error:(NSError *)error
 {
-	errorHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:@"errorHandler"];
+	errorHandler_t handler = [[pendingRequests objectForKey:productIdentifier] objectForKey:kErrorHandler];
 	if(handler)
 		handler(productIdentifier, error);
 	[pendingRequests removeObjectForKey:productIdentifier];
