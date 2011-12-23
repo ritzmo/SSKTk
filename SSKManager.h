@@ -104,3 +104,18 @@ extern NSString *kProductReceiptInvalidNotification;
 @property (nonatomic, readonly) NSArray *purchasables;
 
 @end
+
+#pragma mark - Localization
+
+/*!
+ @brief Localize a string.
+ Get localized version of a string from our bundle.
+ @param stringToken
+ @param table
+ @return
+ */
+NSString *SSKTkLocalize(NSString *stringToken, NSString *table);
+#define SSKTkLocalizedString(key, comment) \
+	SSKTkLocalize(key, nil)
+#define SSKTkLocalzedStringFromTable(key, tbl, comment) \
+	SSKTkLocalize(key, tbl)

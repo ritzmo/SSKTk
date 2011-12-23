@@ -79,7 +79,9 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 #define kErrorHandler		@"errorHandler"
 #define kCancelHandler		@"cancelHandler"
 
-#pragma mark - Implementation
+#pragma mark -
+#pragma mark Implementation
+#pragma mark -
 
 @implementation SSKManager
 
@@ -332,7 +334,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 			 {
 				 NSError *error = [NSError errorWithDomain:sskErrorDomain
 													  code:103
-												  userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
+												  userInfo:[NSDictionary dictionaryWithObject:SSKTkLocalizedString(@"Failed to redeem code: already used?.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
 				 eHandler(productIdentifier, error);
 			 }
 		 }
@@ -361,7 +363,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		{
 			errorHandler(productIdentifier, [NSError errorWithDomain:sskErrorDomain
 																code:100
-															userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"There already is a pending request for this product.", @"") forKey:NSLocalizedFailureReasonErrorKey]]);
+															userInfo:[NSDictionary dictionaryWithObject:SSKTkLocalizedString(@"There already is a pending request for this product.", @"") forKey:NSLocalizedFailureReasonErrorKey]]);
 			return;
 		}
 		[pendingRequests setObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -378,8 +380,8 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		{
 			if(success)
 			{
-				[self showAlertWithTitle:NSLocalizedString(@"Review request approved", @"")
-								 message:NSLocalizedString(@"You can use this feature for reviewing the app.", @"")];
+				[self showAlertWithTitle:SSKTkLocalizedString(@"Review request approved", @"")
+								 message:SSKTkLocalizedString(@"You can use this feature for reviewing the app.", @"")];
 				[self rememberPurchaseOfProduct:productIdentifier withReceipt:[@"REVIEW ACCESS" dataUsingEncoding:NSUTF8StringEncoding]];
 				[self successfullPurchase:productIdentifier];
 			}
@@ -454,7 +456,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 			{
 				NSError *error = [NSError errorWithDomain:sskErrorDomain
 													 code:101
-												 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
+												 userInfo:[NSDictionary dictionaryWithObject:SSKTkLocalizedString(@"Verification of purchase receipt failed.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
 				[self erroneousPurchase:productIdentifier error:error];
 			}
 		}
@@ -471,7 +473,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
 													message:message
 												   delegate:nil
-										  cancelButtonTitle:NSLocalizedString(@"Dismiss", @"")
+										  cancelButtonTitle:SSKTkLocalizedString(@"Dismiss", @"")
 										  otherButtonTitles:nil];
 	[alert show];
 }
@@ -485,7 +487,7 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 		{
 			NSError *error = [NSError errorWithDomain:sskErrorDomain
 												 code:102
-											 userInfo:[NSDictionary dictionaryWithObject:NSLocalizedString(@"Unable to find product for the given product identifier.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
+											 userInfo:[NSDictionary dictionaryWithObject:SSKTkLocalizedString(@"Unable to find product for the given product identifier.", @"") forKey:NSLocalizedFailureReasonErrorKey]];
 			return [self erroneousPurchase:productIdentifier error:error];
 		}
 
@@ -497,10 +499,10 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	}
 	else
 	{
-		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"In-App Purchasing disabled", @"")
-														message:NSLocalizedString(@"Check your parental control settings and try again later", @"")
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:SSKTkLocalizedString(@"In-App Purchasing disabled", @"")
+														message:SSKTkLocalizedString(@"Check your parental control settings and try again later", @"")
 													   delegate:self
-											  cancelButtonTitle:NSLocalizedString(@"Dismiss", @"")
+											  cancelButtonTitle:SSKTkLocalizedString(@"Dismiss", @"")
 											  otherButtonTitles: nil];
 		[alert show];
 		[self canceledPurchase:productIdentifier];
@@ -646,3 +648,16 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 }
 
 @end
+
+#pragma mark - Localization
+
+NSString *SSKTkLocalize(NSString *stringToken, NSString *table)
+{
+	static NSBundle *bundle = nil;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		NSString *path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"SSKTk.bundle"];
+		bundle = [NSBundle bundleWithPath:path];
+	});
+	return NSLocalizedStringFromTableInBundle(stringToken, table, bundle, @"");
+}
