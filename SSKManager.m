@@ -8,7 +8,13 @@
 
 #import "SSKManager.h"
 
-#import "SFHFKeychainUtils.h"
+#if defined(USE_SFHFKEYCHAIN)
+	#import "SFHFKeychainUtils.h"
+#elif defined(USE_SSKEYCHAIN)
+	#import "SSKeychain.h"
+#else
+	#error No helper picked for keychain. Please download and integrate either SFHFKeychain or SSKeychain to your project.
+#endif
 
 #pragma mark - Helper product for redeeming codes without knowing the proper product
 
@@ -147,12 +153,18 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 + (void)deleteObjectForKey:(NSString *)key
 {
 	NSError *error = nil;
+#if defined(USE_SFHFKEYCHAIN)
 	[SFHFKeychainUtils deleteItemForUsername:key
 							  andServiceName:KEYCHAIN_SERVICE
 									   error:&error];
+#elif defined(USE_SSKEYCHAIN)
+	[SSKeychain deletePasswordForService:KEYCHAIN_SERVICE
+								 account:key
+								   error:&error];
+#endif
 
 	if(error)
-		NSLog(@"%@", [error localizedDescription]);
+		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
 }
 
 + (void)setObject:(id) object forKey:(NSString *)key
@@ -176,24 +188,39 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	}
 
 	NSError *error = nil;
+#if defined(USE_SFHFKEYCHAIN)
 	[SFHFKeychainUtils storeUsername:key
 						 andPassword:objectString
 					  forServiceName:KEYCHAIN_SERVICE
 					  updateExisting:YES
 							   error:&error];
+#elif defined(USE_SSKEYCHAIN)
+	[SSKeychain setPassword:objectString
+				 forService:KEYCHAIN_SERVICE
+					account:key
+					  error:&error];
+#endif
 
 	if(error)
-		NSLog(@"%@", [error localizedDescription]);
+		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
 }
 
 + (NSString *)objectForKey:(NSString *)key
 {
 	NSError *error = nil;
-	NSString *object = [SFHFKeychainUtils getPasswordForUsername:key
-												  andServiceName:KEYCHAIN_SERVICE
-														   error:&error];
+	NSString *object = nil;
+#if defined(USE_SFHFKEYCHAIN)
+	object = [SFHFKeychainUtils getPasswordForUsername:key
+										andServiceName:KEYCHAIN_SERVICE
+												 error:&error];
+#elif defined(USE_SSKEYCHAIN)
+	object = [SSKeychain passwordForService:KEYCHAIN_SERVICE
+									account:key
+									  error:&error];
+#endif
+
 	if(error)
-		NSLog(@"%@", [error localizedDescription]);
+		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
 
 	return object;
 }
@@ -216,17 +243,12 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	[productsArray addObjectsFromArray:nonConsumables];
 	[productsArray addObjectsFromArray:[subscriptions allKeys]];
 
-	NSError *error = nil;
 	for(NSString *productIdentifier in productsArray)
 	{
-		[SFHFKeychainUtils deleteItemForUsername:productIdentifier
-								  andServiceName:KEYCHAIN_SERVICE
-										   error:&error];
-		[SFHFKeychainUtils deleteItemForUsername:[NSString stringWithFormat:@"%@+Code", productIdentifier]
-								  andServiceName:KEYCHAIN_SERVICE
-										   error:nil]; // ignore errors for this one
+		[SSKManager deleteObjectForKey:productIdentifier];
+		[SSKManager deleteObjectForKey:[NSString stringWithFormat:@"%@+Code", productIdentifier]];
 	}
-	return error == nil;
+	return YES;
 }
 
 #pragma mark - External API
@@ -256,9 +278,16 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	{
 		NSString *key = product.productIdentifier;
 		NSError *error = nil;
-		NSString *object = [SFHFKeychainUtils getPasswordForUsername:key
-													  andServiceName:@"MKStoreKit"
-															   error:&error];
+		NSString *object = nil;
+#if defined(USE_SFHFKEYCHAIN)
+		object = [SFHFKeychainUtils getPasswordForUsername:key
+											andServiceName:@"MKStoreKit"
+													 error:&error];
+#elif defined(USE_SSKEYCHAIN)
+		object = [SSKeychain passwordForService:@"MKStoreKit"
+										account:key
+										  error:&error];
+#endif
 		if(!error && object && ![object isEqualToString:@""])
 		{
 			[SSKManager setObject:object forKey:key];

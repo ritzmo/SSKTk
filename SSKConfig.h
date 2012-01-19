@@ -12,6 +12,10 @@
 	#define KEYCHAIN_SERVICE @"SSKToolkit"
 #endif
 
+#if !defined(USE_SFHFKEYCHAIN) && !defined(USE_SSKEYCHAIN)
+	#define USE_SSKEYCHAIN
+#endif
+
 //#define REVIEW_ALLOWED 1
 
 //#define OWN_SERVER @"http://www.myserver.com/mypath"
