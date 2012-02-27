@@ -163,8 +163,10 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 								   error:&error];
 #endif
 
+#ifndef NDEBUG
 	if(error)
 		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
+#endif
 }
 
 + (void)setObject:(id) object forKey:(NSString *)key
@@ -201,8 +203,10 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 					  error:&error];
 #endif
 
+#ifndef NDEBUG
 	if(error)
 		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
+#endif
 }
 
 + (NSString *)objectForKey:(NSString *)key
@@ -219,8 +223,10 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 									  error:&error];
 #endif
 
+#ifndef NDEBUG
 	if(error)
 		NSLog(@"%@ (%d)", [error localizedDescription], [error code]);
+#endif
 
 	return object;
 }
@@ -465,7 +471,9 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 	SSKProduct *product = [self productForProductIdentifier:productIdentifier];
 	if(!product)
 	{
+#ifndef NDEBUG
 		NSLog(@"Failed to obtain product for product identifier %@.", productIdentifier);
+#endif
 		product = [SSKBlindProduct productWithIdentifier:productIdentifier];
 	}
 #ifndef NDEBUG
@@ -590,19 +598,25 @@ NSString *kProductReceiptInvalidNotification = @"SStoreKitProductReceiptInvalid"
 								   onComplete:^(BOOL success){
 									   if(success)
 									   {
+#ifndef NDEBUG
 										   NSLog(@"Subscription %@ is active", productIdentifier);
+#endif
 									   }
 									   else
 									   {
 										   [[NSNotificationCenter defaultCenter] postNotificationName:kSubscriptionInvalidNotification
 																							   object:productIdentifier
 																							 userInfo:nil];
+#ifndef NDEBUG
 										   NSLog(@"Subscription %@ is inactive", productIdentifier);
+#endif
 										   // TODO: delete receipt?
 									   }
 								   }
 								 errorHandler:^(NSError *error){
+#ifndef NDEBUG
 									 NSLog(@"Unable to verify receipt %@ for product %@.", receipt, productIdentifier);
+#endif
 								 }];
 				});
 			}
